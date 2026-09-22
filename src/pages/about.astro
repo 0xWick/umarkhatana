@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import Quote from '../components/Quote.astro';
+import { SITE, about, services, roles, quotes, skills, education, certifications, person } from '../data';
+---
+<Base title="About" description={`${SITE.name}, ${SITE.jobTitle}. Background, experience and how to get in touch.`} jsonld={person}>
+  <h1>About</h1>
+  {about.map((p) => <p>{p}</p>)}
+
+  <h2>What I build</h2>
+  {services.map((s) => <>
+    <h3>{s.heading}</h3>
+    <ul>{s.items.map((i) => <li>{i}</li>)}</ul>
+  </>)}
+
+  <h2>Experience</h2>
+  <ul class="list">
+    {roles.map((r) => (
+      <li>
+        <span class="title">{r.role}, {r.company}</span>
+        <span class="meta">{r.dates}</span>
+        <p>{r.line}</p>
+      </li>
+    ))}
+  </ul>
+
+  <Quote q={quotes.about} />
+
+  <h2>Tools</h2>
+  <p>{skills.join(' · ')}</p>
+
+  <h2>Contact</h2>
+  <p>
+    Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, or find me on
+    <a href={SITE.github}>GitHub</a> and <a href={SITE.linkedin}>LinkedIn</a>.
+  </p>
+
+  <h2>Education, awards &amp; certifications</h2>
+  <ul class="plain">
+    {[...education, ...certifications].map((e) => <li class="meta">{e}</li>)}
+  </ul>
+</Base>

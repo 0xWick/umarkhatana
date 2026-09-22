@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { posts } from '../../posts';
+
+const items = (await posts('writing')).map((p) => ({ section: 'writing' as const, p }));
+---
+<Base title="Writing" description="Technical posts on smart contracts, cross-chain systems and AI agents.">
+  <h1>Writing</h1>
+  <p class="lede">Technical notes on the things I build.</p>
+  <PostList items={items} />
+</Base>

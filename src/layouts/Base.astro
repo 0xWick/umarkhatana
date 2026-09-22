@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+import { SITE } from '../data';
+
+interface Props {
+  title: string;
+  description: string;
+  type?: 'website' | 'article';
+  jsonld?: object;
+}
+const { title, description, type = 'website', jsonld } = Astro.props;
+// build.format 'file' makes the build-time path end in .html; the served URL doesn't.
+const path = Astro.url.pathname.replace(/(index)?\.html$/, '');
+const canonical = new URL(path, Astro.site).href;
+const fullTitle = path === '/' ? title : `${title} — ${SITE.name}`;
+const nav = [
+  ['/work', 'Work'],
+  ['/writing', 'Writing'],
+  ['/essays', 'Essays'],
+  ['/about', 'About'],
+];
+const current = (href: string) => path.startsWith(href);
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+  <link rel="sitemap" href="/sitemap-index.xml" />
+  <meta property="og:type" content={type} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:site_name" content={SITE.name} />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+  {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
+</head>
+<body>
+  <header class="site-header wrap">
+    <a class="site-name" href="/">{SITE.name}</a>
+    <nav aria-label="Main">
+      {nav.map(([href, label]) => <a href={href} aria-current={current(href) ? 'page' : undefined}>{label}</a>)}
+    </nav>
+  </header>
+  <main class="wrap">
+    <slot />
+  </main>
+  <footer class="site-footer wrap">
+    <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    <a href={SITE.github}>GitHub</a>
+    <a href={SITE.linkedin}>LinkedIn</a>
+    <a href="/rss.xml">RSS</a>
+  </footer>
+</body>
+</html>

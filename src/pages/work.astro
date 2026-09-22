@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import WorkCard from '../components/WorkCard.astro';
+import { SITE, work } from '../data';
+---
+<Base title="Work" description={`Selected projects by ${SITE.name}: what the problem was, what was built, and how it turned out.`}>
+  <h1>Work</h1>
+  <p class="lede">Selected projects: the problem, what was built, and how it turned out.</p>
+  {work.map((item) => <WorkCard item={item} />)}
+</Base>

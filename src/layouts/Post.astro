@@ -1,0 +1,38 @@
+---
+import Base from './Base.astro';
+import { SITE } from '../data';
+import type { CollectionEntry } from 'astro:content';
+import type { Section } from '../posts';
+
+interface Props { post: CollectionEntry<Section>; section: Section }
+const { post, section } = Astro.props;
+const { title, description, date, updated, tags } = post.data;
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const url = new URL(`/${section}/${post.id}`, Astro.site).href;
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description,
+  url,
+  mainEntityOfPage: url,
+  datePublished: date.toISOString(),
+  dateModified: (updated ?? date).toISOString(),
+  author: { '@type': 'Person', '@id': `${SITE.url}/#person`, name: SITE.name, url: SITE.url },
+};
+---
+<Base title={title} description={description} type="article" jsonld={jsonld}>
+  <article>
+    <header class="post-header">
+      <h1>{title}</h1>
+      <p class="meta">
+        <time datetime={iso(date)}>{fmt(date)}</time>
+        {updated && <> · Updated <time datetime={iso(updated)}>{fmt(updated)}</time></>}
+      </p>
+    </header>
+    <div class="prose"><slot /></div>
+    {tags.length > 0 && <p class="meta tags">Tagged: {tags.join(', ')}</p>}
+  </article>
+  <p class="meta"><a href={`/${section}`}>← All {section === 'writing' ? 'writing' : 'essays'}</a></p>
+</Base>

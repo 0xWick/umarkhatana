@@ -1,0 +1,14 @@
+---
+import type { work } from '../data';
+
+interface Props { item: (typeof work)[number]; short?: boolean }
+const { item, short = false } = Astro.props;
+---
+<article class="card" id={item.id}>
+  <h3>{short ? <a href={`/work#${item.id}`}>{item.title}</a> : item.title}</h3>
+  <p class="meta">{item.role} · {item.year}</p>
+  <p>{item.problem}</p>
+  {!short && <p>{item.built}</p>}
+  {!short && <p class="meta">Stack: {item.stack.join(', ')}</p>}
+  <p class="outcome">{item.outcome}</p>
+</article>

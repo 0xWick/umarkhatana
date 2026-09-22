@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import WorkCard from '../components/WorkCard.astro';
+import Quote from '../components/Quote.astro';
+import { SITE, intro, work, quotes, person } from '../data';
+import { allPosts } from '../posts';
+
+const recent = (await allPosts()).slice(0, 3);
+---
+<Base title={`${SITE.name} — ${SITE.jobTitle}`} description={SITE.tagline} jsonld={person}>
+  <h1>{SITE.name}</h1>
+  <p class="lede">{SITE.tagline}</p>
+  {intro.map((p) => <p>{p}</p>)}
+
+  {recent.length > 0 && <>
+    <h2>Recent writing</h2>
+    <PostList items={recent} />
+  </>}
+
+  <h2>Selected work</h2>
+  {work.slice(0, 3).map((item) => <WorkCard item={item} short />)}
+
+  <Quote q={quotes.home} />
+
+  <p>Building something? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and tell me about it.</p>
+</Base>

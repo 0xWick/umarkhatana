@@ -1,0 +1,8 @@
+---
+interface Props { q: { text: string; by: string; context: string } }
+const { q } = Astro.props;
+---
+<figure class="quote">
+  <blockquote><p>“{q.text}”</p></blockquote>
+  <figcaption>— {q.by}, {q.context}</figcaption>
+</figure>
