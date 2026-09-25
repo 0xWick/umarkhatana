@@ -1,0 +1,10 @@
+{
+  // The site itself: Astro's static build served as Workers static assets.
+  // (The agent in agent/ is a separate Worker with its own config.)
+  // Deploy: npm run build && npx wrangler deploy
+  // The umarkhatana.com domain is attached in the dashboard, so no routes here:
+  // wrangler leaves existing routes alone when the config names none.
+  "name": "umarkhatana-com",
+  "compatibility_date": "2026-09-22",
+  "assets": { "directory": "./dist" }
+}

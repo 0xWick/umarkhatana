@@ -15,7 +15,9 @@ clever. No CMS, no database, no client-side framework.
 - **No web fonts** unless one is genuinely needed — system font stack is faster and
   ships nothing.
 - Integrations: `@astrojs/sitemap`, `@astrojs/rss`. Nothing else.
-- **Host:** Cloudflare Pages (free, at-cost domain renewal). Deploy on push to `main`.
+- **Host:** Cloudflare Workers static assets: the Worker `umarkhatana-com`, configured in
+  `wrangler.jsonc`. Deploy with `npm run deploy`. Pushing to `main` does not deploy on its
+  own until Workers Builds is connected to the repo in the Cloudflare dashboard.
 - Domain: `umarkhatana.com`, with `umarkhatana.dev` redirecting to it.
 
 Set `site: 'https://umarkhatana.com'` in `astro.config.mjs` — sitemap and canonical
@@ -213,8 +215,8 @@ admin rights, and the owner can rotate it with `setAgent`.
 2. **Worker** (done). `cd agent`, `npx wrangler login`, then
    `npx wrangler secret put AGENT_PRIVATE_KEY` and `npm run deploy`. The config serves it
    at `agent.umarkhatana.com`.
-3. **Site** (done). `.env.production` sets `PUBLIC_AGENT_URL=https://agent.umarkhatana.com`;
-   pushing to `main` builds it, with the nav link and the game.
+3. **Site** (done). `.env.production` sets `PUBLIC_AGENT_URL=https://agent.umarkhatana.com`,
+   which turns on the nav link and the game. Deploy with `npm run deploy` from the repo root.
 
 ---
 
@@ -224,7 +226,7 @@ admin rights, and the owner can rotate it with `setAgent`.
 2. `/`, `/about`, `/work` with his real content
 3. `/writing` and `/essays` list + detail pages, with one placeholder post each
 4. SEO: meta, JSON-LD, sitemap, robots, RSS
-5. Deploy to Cloudflare Pages, point the domain
+5. Deploy to Cloudflare (`npm run deploy`), point the domain
 6. Submit the sitemap in Google Search Console — indexing does not start on its own
 
 ---
