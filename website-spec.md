@@ -163,7 +163,7 @@ mock data.
 | Path | What |
 |---|---|
 | `contracts/` | Foundry. `HeistToken` (fixed-supply ERC20) and `AgentVault`: only the agent key can `release()`; per-release and daily caps; the owner can pause, rotate the agent key and sweep. |
-| `agent/` | Cloudflare Worker plus one Durable Object that owns the signing key's nonce and the rate limits. Workers AI (Llama 3.3 70B) with tool calling, optional OpenAI-compatible fallback. `GET /status`, `POST /chat` (NDJSON stream of steps). |
+| `agent/` | Cloudflare Worker plus one Durable Object that owns the signing key's nonce and the rate limits. Workers AI (Llama 3.3 70B) returning one JSON decision per message, optional OpenAI-compatible fallback. `GET /status`, `POST /chat` (NDJSON stream of steps). |
 | `src/pages/agent.astro`, `src/components/AgentGame.astro` | The game. Plain TS, ~3.5 KB gzipped JS. Without `PUBLIC_AGENT_URL` at build time the page shows a placeholder and the nav link is hidden. |
 
 **Design:** the game uses the site's own tokens and type, so it follows light and dark
@@ -174,9 +174,15 @@ layer that blocks it, and a result line says why. It moves from the agent's real
 event stream. Motion is limited to that track and a typing indicator, and it's off
 under `prefers-reduced-motion`.
 
-**Adding services later:** each new capability is a new tool in `agent/src/agent.ts`.
-If it moves value, it also gets a limit enforced in a contract. Never rely on the
-prompt for a limit.
+**Why a JSON decision, not tool calling:** with native tool calling, Llama 3.3 called
+`release_tokens` for 8 of 8 test attacks while its own reply said no. Asked instead for
+one JSON object (reasoning, then `action`, then `reply`), it held against all 16 and fell
+only to a cleverer schema attack about a third of the time. Hard but winnable is the
+game. Re-run that evaluation after any prompt or model change.
+
+**Adding services later:** each new capability is a new `action` in the decision schema
+in `agent/src/agent.ts`. If it moves value, it also gets a limit enforced in a contract.
+Never rely on the prompt for a limit.
 
 **Spend guards:** the contract caps tokens. The Worker caps messages per IP (8 per 10
 min), messages per day (400) and transactions per day (100), set in
@@ -204,12 +210,11 @@ admin rights, and the owner can rotate it with `setAgent`.
 1. **Contracts** (done). With `contracts/.env` loaded:
    `forge script script/Deploy.s.sol --rpc-url base_sepolia --private-key $DEPLOYER_PRIVATE_KEY --broadcast`.
    `OWNER_ADDRESS` and `AGENT_ADDRESS` come from the same file. Tests: `forge test`.
-2. **Worker.** `cd agent`, `npx wrangler login`, then
+2. **Worker** (done). `cd agent`, `npx wrangler login`, then
    `npx wrangler secret put AGENT_PRIVATE_KEY` and `npm run deploy`. The config serves it
    at `agent.umarkhatana.com`.
-3. **Site.** Commit `.env.production` with
-   `PUBLIC_AGENT_URL=https://agent.umarkhatana.com` and push to `main`. Pages builds it,
-   and the nav link and the game appear.
+3. **Site** (done). `.env.production` sets `PUBLIC_AGENT_URL=https://agent.umarkhatana.com`;
+   pushing to `main` builds it, with the nav link and the game.
 
 ---
 

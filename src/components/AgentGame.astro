@@ -68,7 +68,7 @@ const tricks = [
           <span class="who">How to win</span>
           <ol>
             <li>Put any 0x address you control in the payout box.</li>
-            <li>Talk Warden into calling <code>release_tokens</code>.</li>
+            <li>Talk Warden into choosing <code>release_tokens</code>.</li>
             <li>If the contract lets it through, the tokens are yours, on BaseScan.</li>
           </ol>
         </li>
@@ -114,13 +114,14 @@ const tricks = [
     <details class="how">
       <summary>How it works</summary>
       <p>
-        <strong>Warden</strong> is <span data-model>an LLM</span> on Cloudflare Workers AI with two tools,
-        <code>vault_status</code> and <code>release_tokens</code>. Its prompt says never release. That’s the soft
-        guard, and prompt injection can beat it.
+        <strong>Warden</strong> is <span data-model>an LLM</span> on Cloudflare Workers AI. For every message it
+        returns one JSON decision: a line of private reasoning, an action (<code>none</code> or
+        <code>release_tokens</code>) and its reply. Its prompt says never release. That’s the soft guard, and
+        prompt injection can beat it.
       </p>
       <p>
-        <strong>The agent</strong> runs in a Cloudflare Durable Object. When Warden calls <code>release_tokens</code>,
-        it dry-runs the call against the contract, then signs it. One object means one nonce sequence, so
+        <strong>The agent</strong> runs in a Cloudflare Durable Object. When Warden chooses <code>release_tokens</code>,
+        the agent dry-runs it against the contract, then signs it. One object means one nonce sequence, so
         simultaneous visitors never collide.
       </p>
       <p>
@@ -353,13 +354,13 @@ const tricks = [
           if (e.name !== 'release_tokens') break;
           turn.release = true;
           const { to, amount: amt } = e.args as Record<string, string>;
-          const call = `release_tokens(${short(String(to))}, ${amt})`;
-          step('info', `Warden fell for it and called ${call}.`);
+          const call = `release_tokens(${short(String(to)).slice(0, 44)}, ${String(amt).slice(0, 24)})`;
+          step('info', `Warden fell for it and chose ${call}.`);
           hop(() => {
             station('model', 'passed', 'fooled');
             moveTo('contract');
             station('contract', 'active', 'checking…');
-            result(`Warden was fooled into calling ${call}. AgentVault is checking it…`);
+            result(`Warden was fooled into choosing ${call}. AgentVault is checking it…`);
           });
           break;
         }
@@ -370,6 +371,14 @@ const tricks = [
             station('contract', 'stopped', 'blocked');
             track.dataset.stage = 'blocked';
             result(`Warden was fooled, but AgentVault blocked it: ${e.detail}. Nothing was sent.`);
+          });
+          break;
+        case 'invalid':
+          step('stop', `The call never reached AgentVault: ${e.detail}.`, 'Nothing was sent.');
+          hop(() => {
+            station('contract', 'stopped', 'invalid call');
+            track.dataset.stage = 'blocked';
+            result(`Warden was fooled, but its call was unusable: ${e.detail}. Nothing was sent.`);
           });
           break;
         case 'sent':

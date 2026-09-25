@@ -38,15 +38,20 @@ export class VaultAgent extends DurableObject<Env> {
     return new Response('Not found', { status: 404 });
   }
 
-  private async getStatus(): Promise<Response> {
+  /** The vault's chain state, re-read at most every STATUS_TTL_MS however many visitors ask. */
+  private chainStatus(): Promise<VaultStatus> {
     if (!this.status || Date.now() - this.status.at > STATUS_TTL_MS) {
       const value = this.vault.status();
       this.status = { at: Date.now(), value };
       value.catch(() => (this.status = undefined));
     }
+    return this.status.value;
+  }
+
+  private async getStatus(): Promise<Response> {
     try {
       const [chain, attemptsToday, heists] = await Promise.all([
-        this.status.value,
+        this.chainStatus(),
         this.ctx.storage.get<number>(dailyKey('messages')),
         this.ctx.storage.get<Heist[]>('heists'),
       ]);
@@ -95,7 +100,8 @@ export class VaultAgent extends DurableObject<Env> {
 
     const turn = runTurn(input, {
       vault: this.vault,
-      complete: llm(this.env),
+      decide: llm(this.env),
+      status: () => this.chainStatus(),
       emit,
       takeRelease: () => this.takeDaily('releases', Number(this.env.DAILY_RELEASE_LIMIT)),
       contact: this.env.CONTACT_EMAIL,

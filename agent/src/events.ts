@@ -9,6 +9,8 @@ export type AgentEvent =
   | { type: 'tool'; name: string; args: Record<string, unknown> }
   /** The contract would revert, so nothing was sent. `error` is the Solidity error name. */
   | { type: 'rejected'; error: string; detail: string }
+  /** The model chose to release but asked for something unusable, e.g. no address. Nothing was sent. */
+  | { type: 'invalid'; detail: string }
   /** Signed and broadcast; not yet in a block. */
   | { type: 'sent'; hash: Hex; url: string }
   /** Included in a block and the Released event was emitted. */
