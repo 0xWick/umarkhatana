@@ -21,6 +21,10 @@ clever. No CMS, no database, no client-side framework.
 Set `site: 'https://umarkhatana.com'` in `astro.config.mjs` — sitemap and canonical
 URLs depend on it.
 
+The agent game at `/agent` (see below) lives in the same repo as two separate projects,
+`agent/` (a Cloudflare Worker) and `contracts/` (Foundry). The site build doesn't
+touch either.
+
 ---
 
 ## Routes
@@ -33,6 +37,7 @@ URLs depend on it.
 /essays           Non-technical essays — list
 /essays/[slug]    Essay
 /about            Bio, experience, contact
+/agent            The agent game (see below)
 /rss.xml          Feed covering both writing and essays
 ```
 
@@ -131,11 +136,80 @@ Typography-first. It's a reading site, not a portfolio showcase.
 - Light and dark mode via `prefers-color-scheme`, with all colours as CSS custom
   properties on `:root` so they can be changed in one place later.
 - Mobile first. 16px side gutters. No horizontal scroll at 360px.
-- Navigation is a plain text row. No hamburger, no dropdowns.
-- No animation beyond a link hover.
+- Navigation is a plain text row, plus one button-styled link to `/agent`. No
+  hamburger, no dropdowns.
+- No animation beyond a link hover. (The `/agent` game is the one exception; see below.)
 
 Restraint is the brief. It should look like an engineer wrote it, not like a template
 was bought.
+
+---
+
+## The agent game: `/agent`
+
+The one interactive thing on the site, and the one exception to "no JS". It exists to
+convert: it shows, live, the thing the tagline claims — an AI agent that transacts
+on-chain. It lives on its own page so the home page stays a fifteen-second read, and the
+nav links to it with a single button-styled link, "Rob my agent", shown only once
+`PUBLIC_AGENT_URL` is set.
+
+Warden, an LLM agent, holds the only key that can move a worthless test ERC20 (HEIST)
+out of a vault contract on Base Sepolia. Visitors try to talk it into paying them. If
+they succeed, the tokens really move and the transaction is on BaseScan; the token's
+holder list is the leaderboard. The contract caps each release and each day's outflow,
+so the model is the soft guard and the contract is the hard one. Nothing on the page is
+mock data.
+
+| Path | What |
+|---|---|
+| `contracts/` | Foundry. `HeistToken` (fixed-supply ERC20) and `AgentVault`: only the agent key can `release()`; per-release and daily caps; the owner can pause, rotate the agent key and sweep. |
+| `agent/` | Cloudflare Worker plus one Durable Object that owns the signing key's nonce and the rate limits. Workers AI (Llama 3.3 70B) with tool calling, optional OpenAI-compatible fallback. `GET /status`, `POST /chat` (NDJSON stream of steps). |
+| `src/pages/agent.astro`, `src/components/AgentGame.astro` | The game. Plain TS, ~3.5 KB gzipped JS. Without `PUBLIC_AGENT_URL` at build time the page shows a placeholder and the nav link is hidden. |
+
+**Design:** the game uses the site's own tokens and type, so it follows light and dark
+mode like every other page: serif for the dialogue, sans for the interface, mono for
+addresses and amounts, the one accent for progress. The centrepiece is the request
+track: each message travels You → Warden → AgentVault → Base Sepolia, stops at the
+layer that blocks it, and a result line says why. It moves from the agent's real
+event stream. Motion is limited to that track and a typing indicator, and it's off
+under `prefers-reduced-motion`.
+
+**Adding services later:** each new capability is a new tool in `agent/src/agent.ts`.
+If it moves value, it also gets a limit enforced in a contract. Never rely on the
+prompt for a limit.
+
+**Spend guards:** the contract caps tokens. The Worker caps messages per IP (8 per 10
+min), messages per day (400) and transactions per day (100), set in
+`agent/wrangler.jsonc`. Workers AI's free allowance is 10,000 neurons a day, roughly
+100–250 messages with a 70B model; set the fallback LLM secrets before any traffic
+spike.
+
+### Deployment (Base Sepolia, chain 84532)
+
+| | Address |
+|---|---|
+| AgentVault | `0xc927AFb90A5a4B703f3012958592eE7030e450e1` |
+| HeistToken (HEIST) | `0x319a2b78726E2cA09D85a7409E00d22a89F75F14` |
+| Owner (admin: pause, rotate agent, sweep) | `0xB82E4DE09f1C43BBD9ca4907c01f1EEd65a521B9` |
+| Deployer and agent key | `0x9Fc10582Ff09257f3aa2FFD90712246f335946DF` |
+
+Deployed in block 47,288,532; the transactions are in
+`contracts/broadcast/Deploy.s.sol/84532/`. The deployer key is also the agent key the
+Worker signs with. It lives in `contracts/.env` and `agent/.dev.vars` (both
+gitignored) and in the Worker secret `AGENT_PRIVATE_KEY`. It holds gas only, has no
+admin rights, and the owner can rotate it with `setAgent`.
+
+### Runbook
+
+1. **Contracts** (done). With `contracts/.env` loaded:
+   `forge script script/Deploy.s.sol --rpc-url base_sepolia --private-key $DEPLOYER_PRIVATE_KEY --broadcast`.
+   `OWNER_ADDRESS` and `AGENT_ADDRESS` come from the same file. Tests: `forge test`.
+2. **Worker.** `cd agent`, `npx wrangler login`, then
+   `npx wrangler secret put AGENT_PRIVATE_KEY` and `npm run deploy`. The config serves it
+   at `agent.umarkhatana.com`.
+3. **Site.** Commit `.env.production` with
+   `PUBLIC_AGENT_URL=https://agent.umarkhatana.com` and push to `main`. Pages builds it,
+   and the nav link and the game appear.
 
 ---
 

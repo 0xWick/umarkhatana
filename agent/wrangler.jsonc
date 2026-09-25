@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "umarkhatana-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // Workers AI: the free LLM. Uses the account's daily free neuron allowance.
+  "ai": { "binding": "AI" },
+
+  // One Durable Object instance is the agent: it owns the signing key's nonce,
+  // so concurrent visitors can't collide, and it holds the rate limits.
+  "durable_objects": {
+    "bindings": [{ "name": "VAULT_AGENT", "class_name": "VaultAgent" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["VaultAgent"] }],
+
+  "vars": {
+    "CHAIN": "base-sepolia",
+    "RPC_URL": "https://sepolia.base.org",
+    "EXPLORER_URL": "https://sepolia.basescan.org",
+    // AgentVault on Base Sepolia, deployed by contracts/script/Deploy.s.sol.
+    "VAULT_ADDRESS": "0xc927AFb90A5a4B703f3012958592eE7030e450e1",
+    "ALLOWED_ORIGINS": "https://umarkhatana.com,http://localhost:4321",
+    "LLM_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "CONTACT_EMAIL": "realumargujjar@gmail.com",
+    // Spend guards. The contract caps tokens; these cap LLM quota and agent gas.
+    "DAILY_MESSAGE_LIMIT": "400",
+    "DAILY_RELEASE_LIMIT": "100",
+    "IP_MESSAGES_PER_10_MIN": "8"
+  },
+
+  // Secrets (wrangler secret put …), not committed:
+  //   AGENT_PRIVATE_KEY   the vault's agent key. Needs Base Sepolia ETH for gas only.
+  //   RPC_URL             optional override with a keyed RPC (Alchemy etc.)
+  //   FALLBACK_LLM_URL    optional OpenAI-compatible base URL used if Workers AI fails,
+  //   FALLBACK_LLM_KEY    e.g. https://api.groq.com/openai/v1
+  //   FALLBACK_LLM_MODEL
+
+  "routes": [{ "pattern": "agent.umarkhatana.com", "custom_domain": true }]
+}

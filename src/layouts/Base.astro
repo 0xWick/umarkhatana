@@ -20,6 +20,8 @@ const nav = [
   ['/about', 'About'],
 ];
 const current = (href: string) => path.startsWith(href);
+// The game is only linked once its agent is deployed and the build knows where it is.
+const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
 ---
 <!doctype html>
 <html lang="en">
@@ -47,6 +49,7 @@ const current = (href: string) => path.startsWith(href);
     <a class="site-name" href="/">{SITE.name}</a>
     <nav aria-label="Main">
       {nav.map(([href, label]) => <a href={href} aria-current={current(href) ? 'page' : undefined}>{label}</a>)}
+      {agentLive && <a class="nav-cta" href="/agent" aria-current={current('/agent') ? 'page' : undefined}>Rob my agent</a>}
     </nav>
   </header>
   <main class="wrap">

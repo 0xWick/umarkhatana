@@ -9,6 +9,8 @@ export const SITE = {
   email: 'realumargujjar@gmail.com',
   github: 'https://github.com/0xWick',
   linkedin: 'https://www.linkedin.com/in/umarkhatana',
+  // This site's source, including the vault contract and agent behind the homepage game.
+  repo: 'https://github.com/0xWick/umarkhatana.com',
 };
 
 // Home intro: 2–3 sentences.

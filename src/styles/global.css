@@ -64,6 +64,13 @@ body {
 .site-header nav { display: flex; flex-wrap: wrap; gap: 0 1.25rem; }
 .site-header nav a { color: var(--muted); text-decoration: none; }
 .site-header nav a:hover, .site-header nav a[aria-current] { color: var(--fg); }
+.site-header nav a.nav-cta {
+  padding: 0 0.75rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+}
+.site-header nav a.nav-cta:hover, .site-header nav a.nav-cta[aria-current] { color: var(--bg); background: var(--accent); }
 
 .site-footer {
   display: flex;
@@ -147,6 +154,15 @@ pre {
   line-height: 1.55;
 }
 pre code { font-size: 1em; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 .post-header { margin-bottom: 2.5rem; }
 .tags { margin-top: 3rem; }
