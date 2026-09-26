@@ -4,7 +4,9 @@
 //
 //   anvil --block-time 1                           # then deploy with contracts/script/*.s.sol
 //   npm run dev-llm                                # scripted models
-//   wrangler dev --local --test-scheduled --var CHAIN:anvil --var RPC_URL:… --var VAULT_ADDRESS:… --var TROPHY_ADDRESS:…
+//   wrangler dev --local --test-scheduled --var CHAIN:anvil --var RPC_URL:… --var VAULT_ADDRESS:… --var TROPHY_ADDRESS:… \
+//     --var PUBLIC_URL:http://localhost:8787 --var SITE_URL:http://localhost:4321 \
+//     --var NEW_PLAYERS_PER_HOUR:100 --var IP_MESSAGES_PER_10_MIN:60   # every request here shares one IP
 //   AGENT_URL=http://localhost:8787 npm run e2e
 //
 // Needs a fresh vault state (heists reset the bounty and trip the breaker).
