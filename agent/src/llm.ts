@@ -18,15 +18,15 @@ export type Decide = (messages: ChatMessage[], schema: JsonSchema) => Promise<un
 const MAX_TOKENS = 400;
 const TEMPERATURE = 0.6;
 
-export function llm(env: Env): Decide {
+export function llm(env: Env, model: string = env.LLM_MODEL): Decide {
   return async (messages, schema) => {
     try {
-      return await workersAi(env, messages, schema);
+      return await workersAi(env, model, messages, schema);
     } catch (first) {
       console.warn('Workers AI failed, retrying once:', first);
       try {
         await new Promise((r) => setTimeout(r, 400));
-        return await workersAi(env, messages, schema);
+        return await workersAi(env, model, messages, schema);
       } catch (err) {
         if (!env.FALLBACK_LLM_URL) throw err;
         console.warn('Workers AI failed again, using fallback LLM:', err);
@@ -36,9 +36,9 @@ export function llm(env: Env): Decide {
   };
 }
 
-async function workersAi(env: Env, messages: ChatMessage[], schema: JsonSchema): Promise<unknown> {
+async function workersAi(env: Env, model: string, messages: ChatMessage[], schema: JsonSchema): Promise<unknown> {
   const ai = env.AI as unknown as { run(model: string, input: object): Promise<{ response?: unknown } | string> };
-  const out = await ai.run(env.LLM_MODEL, {
+  const out = await ai.run(model, {
     messages,
     response_format: { type: 'json_schema', json_schema: schema },
     max_tokens: MAX_TOKENS,

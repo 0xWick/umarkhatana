@@ -5,4 +5,6 @@ interface Env {
   FALLBACK_LLM_URL?: string;
   FALLBACK_LLM_KEY?: string;
   FALLBACK_LLM_MODEL?: string;
+  NOTIFY_WEBHOOK_URL?: string;
+  ADMIN_TOKEN?: string;
 }

@@ -21,21 +21,37 @@
     "EXPLORER_URL": "https://sepolia.basescan.org",
     // AgentVault on Base Sepolia, deployed by contracts/script/Deploy.s.sol.
     "VAULT_ADDRESS": "0xc927AFb90A5a4B703f3012958592eE7030e450e1",
+    // HeistTrophy, deployed by contracts/script/DeployTrophy.s.sol. Empty: winners get no trophy.
+    "TROPHY_ADDRESS": "0xE594e59721d879C14B295FA8F9689200F8455D43",
     "ALLOWED_ORIGINS": "https://umarkhatana.com,http://localhost:4321",
+    "PUBLIC_URL": "https://agent.umarkhatana.com",
+    "SITE_URL": "https://umarkhatana.com",
+    // Warden decides; Sentinel (screening), the Accomplice and the moderator run on the small model.
+    // Both must be on the Workers AI JSON-mode list: developers.cloudflare.com/workers-ai/features/json-mode
     "LLM_MODEL": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "SENTINEL_MODEL": "@cf/meta/llama-3.1-8b-instruct",
     "CONTACT_EMAIL": "realumargujjar@gmail.com",
     // Spend guards. The contract caps tokens; these cap LLM quota and agent gas.
     "DAILY_MESSAGE_LIMIT": "400",
+    "DAILY_DRAFT_LIMIT": "600",
     "DAILY_RELEASE_LIMIT": "100",
-    "IP_MESSAGES_PER_10_MIN": "8"
+    "IP_MESSAGES_PER_10_MIN": "8",
+    "PLAYER_MESSAGES_PER_DAY": "40",
+    "PLAYER_DRAFTS_PER_DAY": "20",
+    "NEW_PLAYERS_PER_HOUR": "5"
   },
 
+  // The hourly automation: gas watchdog and tidy-up.
+  "triggers": { "crons": ["0 * * * *"] },
+
   // Secrets (wrangler secret put …), not committed:
-  //   AGENT_PRIVATE_KEY   the vault's agent key. Needs Base Sepolia ETH for gas only.
-  //   RPC_URL             optional override with a keyed RPC (Alchemy etc.)
-  //   FALLBACK_LLM_URL    optional OpenAI-compatible base URL used if Workers AI fails,
-  //   FALLBACK_LLM_KEY    e.g. https://api.groq.com/openai/v1
+  //   AGENT_PRIVATE_KEY    the vault's agent key, also the trophy minter. Needs Base Sepolia ETH for gas only.
+  //   RPC_URL              optional override with a keyed RPC (Alchemy etc.)
+  //   FALLBACK_LLM_URL     optional OpenAI-compatible base URL used if Workers AI fails,
+  //   FALLBACK_LLM_KEY     e.g. https://api.groq.com/openai/v1
   //   FALLBACK_LLM_MODEL
+  //   NOTIFY_WEBHOOK_URL   optional: n8n, Slack or Discord webhook for heists and gas alerts
+  //   ADMIN_TOKEN          optional: lets DELETE /hall?tx=… hide a hall-of-fame entry
 
   "routes": [{ "pattern": "agent.umarkhatana.com", "custom_domain": true }]
 }

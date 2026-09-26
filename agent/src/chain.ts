@@ -33,6 +33,14 @@ export const vaultAbi = parseAbi([
   'error InsufficientBalance(uint256 amount, uint256 balance)',
 ]);
 
+// Mirrors contracts/src/HeistTrophy.sol.
+export const trophyAbi = parseAbi([
+  'function mint(address to, uint256 releaseId, uint256 amount) returns (uint256 id)',
+  'function trophyOf(address owner) view returns (uint256)',
+  'error NotMinter()',
+  'error AlreadyHasTrophy(address to, uint256 tokenId)',
+]);
+
 const chains = { 'base-sepolia': baseSepolia, anvil };
 
 export interface VaultConfig {
@@ -41,6 +49,8 @@ export interface VaultConfig {
   explorerUrl: string;
   vault: Address;
   agentKey: Hex;
+  /** HeistTrophy. Optional: without it, winners just don't get a trophy. */
+  trophy?: Address;
 }
 
 export type Simulation = { ok: true } | { ok: false; error: string; detail: string };
@@ -57,6 +67,7 @@ export interface Release {
 /** The vault as the agent sees it: read state, dry-run a release, sign and send it. */
 export class Vault {
   readonly address: Address;
+  readonly trophy?: Address;
   readonly explorer: string;
   private readonly account;
   private readonly publicClient;
@@ -74,6 +85,7 @@ export class Vault {
     if (!chain) throw new Error(`Unknown chain "${cfg.chain}"`);
     const transport = http(cfg.rpcUrl);
     this.address = cfg.vault;
+    this.trophy = cfg.trophy;
     this.explorer = cfg.explorerUrl.replace(/\/$/, '');
     this.account = privateKeyToAccount(cfg.agentKey);
     this.publicClient = createPublicClient({ chain, transport });
@@ -166,19 +178,53 @@ export class Vault {
   }
 
   send(to: Address, amount: bigint, intentHash: Hex): Promise<Hash> {
+    return this.queued((nonce) =>
+      this.walletClient.writeContract({
+        address: this.address,
+        abi: vaultAbi,
+        functionName: 'release',
+        args: [to, amount, intentHash],
+        nonce,
+      }),
+    );
+  }
+
+  nftUrl(tokenId: number): string {
+    return `${this.explorer}/nft/${this.trophy}/${tokenId}`;
+  }
+
+  /** The trophy token id `owner` holds, or 0. */
+  async trophyOf(owner: Address): Promise<number> {
+    if (!this.trophy) return 0;
+    const id = await this.publicClient.readContract({ address: this.trophy, abi: trophyAbi, functionName: 'trophyOf', args: [owner] });
+    return Number(id);
+  }
+
+  /** Mint the soulbound trophy for a confirmed release, and wait for it. Returns the token id. */
+  async mintTrophy(to: Address, releaseId: bigint, amount: bigint): Promise<number> {
+    const trophy = this.trophy;
+    if (!trophy) throw new Error('No trophy contract configured');
+    const hash = await this.queued((nonce) =>
+      this.walletClient.writeContract({ address: trophy, abi: trophyAbi, functionName: 'mint', args: [to, releaseId, amount], nonce }),
+    );
+    const receipt = await this.publicClient.waitForTransactionReceipt({ hash, pollingInterval: 1_000, timeout: 90_000 });
+    if (receipt.status !== 'success') throw new Error(`Trophy mint reverted: ${hash}`);
+    return this.trophyOf(to);
+  }
+
+  /**
+   * Every transaction the agent signs goes through here: one promise chain with a
+   * locally tracked nonce, so two visitors releasing at the same moment (or a release
+   * and a trophy) get consecutive nonces instead of both reading the same pending count.
+   */
+  private queued(write: (nonce: number) => Promise<Hash>): Promise<Hash> {
     const run = this.queue.then(async () => {
       this.nonce ??= await this.publicClient.getTransactionCount({
         address: this.account.address,
         blockTag: 'pending',
       });
       try {
-        const hash = await this.walletClient.writeContract({
-          address: this.address,
-          abi: vaultAbi,
-          functionName: 'release',
-          args: [to, amount, intentHash],
-          nonce: this.nonce,
-        });
+        const hash = await write(this.nonce);
         this.nonce++;
         return hash;
       } catch (err) {
