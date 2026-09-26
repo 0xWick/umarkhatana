@@ -10,5 +10,5 @@ const { item, short = false } = Astro.props;
   <p>{item.problem}</p>
   {!short && <p>{item.built}</p>}
   {!short && <p class="meta">Stack: {item.stack.join(', ')}</p>}
-  <p class="outcome">{item.outcome}</p>
+  <p class="outcome">{item.url ? <a href={item.url}>{item.outcome}</a> : item.outcome}</p>
 </article>

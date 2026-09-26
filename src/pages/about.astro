@@ -24,15 +24,16 @@ import { SITE, about, services, roles, quotes, skills, education, certifications
     ))}
   </ul>
 
-  <Quote q={quotes.about} />
+  <h2>What people say</h2>
+  {quotes.about.map((q) => <Quote q={q} />)}
 
   <h2>Tools</h2>
   <p>{skills.join(' · ')}</p>
 
   <h2>Contact</h2>
   <p>
-    Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, or find me on
-    <a href={SITE.github}>GitHub</a> and <a href={SITE.linkedin}>LinkedIn</a>.
+    Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, <a href={SITE.calendly}>book a 30-minute call</a>,
+    or find me on <a href={SITE.github}>GitHub</a> and <a href={SITE.linkedin}>LinkedIn</a>.
   </p>
 
   <h2>Education, awards &amp; certifications</h2>

@@ -1,0 +1,3 @@
+# Essays moved to the Quartz site.
+/essays    https://essays.umarkhatana.com/  301
+/essays/*  https://essays.umarkhatana.com/  301

@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE } from '../data';
+import { posts } from '../posts';
 
 interface Props {
   title: string;
@@ -13,10 +14,12 @@ const { title, description, type = 'website', jsonld } = Astro.props;
 const path = Astro.url.pathname.replace(/(index)?\.html$/, '');
 const canonical = new URL(path, Astro.site).href;
 const fullTitle = path === '/' ? title : `${title} — ${SITE.name}`;
+// Writing stays out of the nav until there's a post to read.
+const hasWriting = (await posts()).length > 0;
 const nav = [
   ['/work', 'Work'],
-  ['/writing', 'Writing'],
-  ['/essays', 'Essays'],
+  ...(hasWriting ? [['/writing', 'Writing']] : []),
+  ['https://essays.umarkhatana.com/', 'Essays'],
   ['/about', 'About'],
 ];
 const current = (href: string) => path.startsWith(href);
@@ -39,9 +42,12 @@ const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:site_name" content={SITE.name} />
+  <meta property="og:image" content={new URL('/og.jpg', Astro.site).href} />
+  <meta property="og:image:alt" content="A hooded hacker above the word HACKERMAN" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={new URL('/og.jpg', Astro.site).href} />
   {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
 </head>
 <body>
@@ -57,6 +63,7 @@ const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
   </main>
   <footer class="site-footer wrap">
     <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    <a href={SITE.calendly}>Book a call</a>
     <a href={SITE.github}>GitHub</a>
     <a href={SITE.linkedin}>LinkedIn</a>
     <a href="/rss.xml">RSS</a>

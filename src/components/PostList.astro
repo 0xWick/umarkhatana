@@ -1,15 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
-import type { Section } from '../posts';
 
-interface Props { items: { section: Section; p: CollectionEntry<Section> }[] }
+interface Props { items: CollectionEntry<'writing'>[] }
 const { items } = Astro.props;
 const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 ---
 <ul class="list">
-  {items.map(({ section, p }) => (
+  {items.map((p) => (
     <li>
-      <a class="title" href={`/${section}/${p.id}`}>{p.data.title}</a>
+      <a class="title" href={`/writing/${p.id}`}>{p.data.title}</a>
       <p>{p.data.description}</p>
       <time class="meta" datetime={p.data.date.toISOString().slice(0, 10)}>{fmt(p.data.date)}</time>
     </li>

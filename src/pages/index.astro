@@ -4,9 +4,9 @@ import PostList from '../components/PostList.astro';
 import WorkCard from '../components/WorkCard.astro';
 import Quote from '../components/Quote.astro';
 import { SITE, intro, work, quotes, person } from '../data';
-import { allPosts } from '../posts';
+import { posts } from '../posts';
 
-const recent = (await allPosts()).slice(0, 3);
+const recent = (await posts()).slice(0, 3);
 ---
 <Base title={`${SITE.name} — ${SITE.jobTitle}`} description={SITE.tagline} jsonld={person}>
   <h1>{SITE.name}</h1>
@@ -23,5 +23,5 @@ const recent = (await allPosts()).slice(0, 3);
 
   <Quote q={quotes.home} />
 
-  <p>Building something? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> and tell me about it.</p>
+  <p>Building something? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or <a href={SITE.calendly}>book a 30-minute call</a>.</p>
 </Base>

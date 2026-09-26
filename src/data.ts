@@ -7,6 +7,7 @@ export const SITE = {
   jobTitle: 'Blockchain & AI Engineer',
   tagline: 'I build smart contracts, and the AI agents that transact with them.',
   email: 'realumargujjar@gmail.com',
+  calendly: 'https://calendly.com/realumargujjar/30min',
   github: 'https://github.com/0xWick',
   linkedin: 'https://www.linkedin.com/in/umarkhatana',
   // This site's source, including the vault contract and agent behind the homepage game.
@@ -58,6 +59,17 @@ export const services = [
 
 export const work = [
   {
+    id: 'warden',
+    title: 'Warden — an AI agent guarding an on-chain vault',
+    role: 'Personal project',
+    year: '2026',
+    problem: 'An AI agent that can move money is only as safe as what sits between a stranger’s message and the chain. Prompts alone don’t hold.',
+    built: 'Warden, a Llama 3.3 70B agent on Cloudflare Workers, holds the only key to a Solidity vault on Base Sepolia, and anyone can try to talk it into paying them. A second model screens every message into a suspicion score, plain code turns that into vetoes, lockouts and a circuit breaker, and the contract caps every release. Winners get a soulbound on-chain trophy, and anyone can send their own AI in over MCP.',
+    stack: ['Solidity', 'Foundry', 'Cloudflare Workers', 'Durable Objects', 'Workers AI', 'MCP', 'viem'],
+    outcome: 'Live on Base Sepolia. Try to rob it →',
+    url: '/agent',
+  },
+  {
     id: 'p2p-ai-ranking',
     title: 'Peer-to-peer ranking protocol for AI models',
     role: 'Senior Engineer, Telegraph',
@@ -86,6 +98,7 @@ export const work = [
     built: 'Smart contracts that collect each round’s contributions and pick the recipient with Chainlink VRF, so the payout order is provably random. Members join through a zero-knowledge ID check, so one person can’t hold several seats.',
     stack: ['Solidity', 'Chainlink VRF', 'ZK identity'],
     outcome: 'Prize winner, Chainlink Fall 2022 Hackathon',
+    url: 'https://devpost.com/software/decentralized-kameti',
   },
 ];
 
@@ -98,15 +111,27 @@ export const roles = [
 
 export const quotes = {
   home: {
-    text: 'When assigned to a Solana project with no prior Rust experience, he dove in, rapidly mastered the language, and delivered the project seamlessly and effectively.',
-    by: 'Mueed',
-    context: 'Agentic Security & Blockchain Architect',
+    text: 'I have hired dozens of freelancers off of Upwork over the last decade and can say with confidence Muhammad is one of the best I have ever worked with.',
+    by: 'Upwork client',
+    context: 'Web3 technical consulting, 2022',
   },
-  about: {
-    text: 'He isn’t someone you leave to work in the background on JIRA tickets… he is someone you want to bring to your product strategy meetings. He is someone you want to put in front of your clients.',
-    by: 'Soban Raza',
-    context: 'Co-founder, Antematter',
-  },
+  about: [
+    {
+      text: 'He isn’t someone you leave to work in the background on JIRA tickets… he is someone you want to bring to your product strategy meetings. He is someone you want to put in front of your clients.',
+      by: 'Soban Raza',
+      context: 'Co-founder, Antematter',
+    },
+    {
+      text: 'He knows blockchain and crypto at every level of the stack… he’s ahead of the game when it comes to agentic solutions, AI automation, and bleeding edge technology… just hire him, he’s a rock solid engineer.',
+      by: 'Upwork client',
+      context: 'Crypto and blockchain consulting, 2025–26',
+    },
+    {
+      text: 'When assigned to a Solana project with no prior Rust experience, he dove in, rapidly mastered the language, and delivered the project seamlessly and effectively.',
+      by: 'Mueed',
+      context: 'Agentic Security & Blockchain Architect',
+    },
+  ],
 };
 
 export const skills = ['Solidity', 'Foundry', 'Hardhat', 'Chainlink', 'Go', 'Rust', 'TypeScript', 'Python', 'gRPC', 'LangGraph', 'MCP', 'AWS'];

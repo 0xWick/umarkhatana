@@ -10,7 +10,7 @@ const schema = z.object({
   tags: z.array(z.string()).default([]),
 });
 
+// Essays live on the Quartz site at essays.umarkhatana.com, not here.
 export const collections = {
   writing: defineCollection({ loader: glob({ pattern: '**/*.md', base: './src/content/writing' }), schema }),
-  essays: defineCollection({ loader: glob({ pattern: '**/*.md', base: './src/content/essays' }), schema }),
 };
