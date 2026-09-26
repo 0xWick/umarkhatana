@@ -70,6 +70,17 @@ export const work = [
     url: '/agent',
   },
   {
+    id: 'nobodys-playing',
+    title: 'Nobody’s Playing — a live war run by AI agents, n8n and Chainlink',
+    role: 'Personal project',
+    year: '2026',
+    problem: 'Clients have heard of AI agents, n8n, oracles and blockchains, but can’t picture what each one does, or what they look like working together in one system.',
+    built: 'A war game with no players. Two AI generals read the board through tools and give one order every 30 minutes, n8n workflows run each turn and reorder food when stores run low, the real ETH price from Chainlink moves one kingdom’s income, and every capture is written to a Base Sepolia contract that reads Chainlink itself. A Tech Lens explains each event in plain English with a business analogy, and past seasons replay as timelapses.',
+    stack: ['Solidity', 'Foundry', 'Chainlink', 'n8n', 'Node.js', 'Groq', 'viem', 'Cloudflare Tunnel'],
+    outcome: 'Live on Base Sepolia. Watch the war →',
+    url: 'https://nobodysplaying.umarkhatana.com',
+  },
+  {
     id: 'p2p-ai-ranking',
     title: 'Peer-to-peer ranking protocol for AI models',
     role: 'Senior Engineer, Telegraph',
