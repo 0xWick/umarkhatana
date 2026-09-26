@@ -3,3 +3,4 @@ cache/
 broadcast/*/31337/
 .env
 verify/
+broadcast/**/dry-run/
