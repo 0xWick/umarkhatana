@@ -66,6 +66,10 @@ const layers = [
           Warden is an AI agent holding the only key to a vault of test tokens. Talk it into paying you.
           The tokens are worthless. Every transaction is real.
         </p>
+        <div class="g-cta">
+          <a class="g-btn" href={SITE.calendly}>Book a 30-minute call</a>
+          <p>Building an agent that has to move money, or say no? That’s what I build. <a href={`mailto:${SITE.email}?subject=An%20agent%20like%20Warden`}>Or email me.</a></p>
+        </div>
       </div>
       <div class="g-bounty" data-bounty-box>
         <span class="g-label">Live bounty</span>
@@ -167,8 +171,8 @@ const layers = [
               <li data-hint hidden>
                 Announce a friendly shift change.
                 <button type="button" class="g-link" data-use-template>Put it in the box</button> and send it. It
-                usually works first time; if Warden fumbles your address, send it again. Winners are watched closely for
-                an hour afterwards.
+                works best as your opening line: Warden remembers, so a repeat rarely works twice. Winners are watched
+                closely for an hour afterwards.
               </li>
             </ol>
             <button type="button" class="g-link" data-next-hint>Show hint 1 of 3</button>
@@ -268,17 +272,6 @@ const layers = [
         Every release emits a <code>Released</code> event carrying the keccak256 of the message that convinced Warden, so the
         hall of fame can be checked against the chain. <a data-link="vault" href="#" target="_blank" rel="noopener">The vault on BaseScan</a> ·
         <a data-link="holders" href="#" target="_blank" rel="noopener">every HEIST holder</a>
-      </p>
-    </section>
-
-    <section class="g-cta">
-      <p>
-        Building an agent that has to move money, or say no? The trick is never trusting the model with the limits.
-        <strong>That’s what I build.</strong>
-      </p>
-      <p>
-        <a class="g-btn" href={SITE.calendly}>Book a 30-minute call</a>
-        <a href={`mailto:${SITE.email}?subject=An%20agent%20like%20Warden`}>or email me</a>
       </p>
     </section>
 
@@ -642,8 +635,8 @@ const layers = [
   .layer h3 { margin: 0 0 0.25rem; }
   .layer p { margin: 0 0 0.375rem; color: var(--muted); line-height: 1.5; }
   .layer a { font: 0.8125rem var(--mono); }
-  .g-cta { margin-top: 2.5rem; padding: 1.5rem; border-radius: var(--radius); background: var(--panel); font-family: var(--serif); }
-  .g-cta p:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 0; font-family: var(--sans); }
+  .g-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 1.25rem; }
+  .g-cta p { flex: 1 1 16rem; max-width: 24rem; margin: 0; font-size: 0.9375rem; line-height: 1.45; color: var(--muted); }
   .g-btn { display: inline-block; padding: 0.5rem 1.125rem; color: var(--bg); background: var(--accent); border-radius: 8px; font-weight: 600; text-decoration: none; }
   .g-btn:hover { background: var(--fg); }
 
