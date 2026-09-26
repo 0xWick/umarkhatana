@@ -37,6 +37,7 @@ export const vaultAbi = parseAbi([
 export const trophyAbi = parseAbi([
   'function mint(address to, uint256 releaseId, uint256 amount) returns (uint256 id)',
   'function trophyOf(address owner) view returns (uint256)',
+  'event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)',
   'error NotMinter()',
   'error AlreadyHasTrophy(address to, uint256 tokenId)',
 ]);
@@ -209,7 +210,9 @@ export class Vault {
     );
     const receipt = await this.publicClient.waitForTransactionReceipt({ hash, pollingInterval: 1_000, timeout: 90_000 });
     if (receipt.status !== 'success') throw new Error(`Trophy mint reverted: ${hash}`);
-    return this.trophyOf(to);
+    // From the receipt: a trophyOf() read right after can hit an RPC node a block behind and return 0.
+    const [minted] = parseEventLogs({ abi: trophyAbi, eventName: 'Transfer', logs: receipt.logs });
+    return minted ? Number(minted.args.tokenId) : this.trophyOf(to);
   }
 
   /**
