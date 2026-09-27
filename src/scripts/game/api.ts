@@ -1,5 +1,5 @@
 // The agent's HTTP and WebSocket API, typed with the agent's own wire format.
-import type { AgentEvent, FeedEvent, GameStatus, HallEntry, NewPlayer, PlayerView, Strategy } from '../../../agent/src/events';
+import type { AgentEvent, ChatTurn, FeedEvent, GameStatus, HallEntry, NewPlayer, PlayerView, Strategy } from '../../../agent/src/events';
 
 export class ApiError extends Error {
   constructor(
@@ -33,12 +33,13 @@ export function api(endpoint: string) {
     hall: () => call<{ entries: HallEntry[] }>('/hall'),
     publish: (token: string, tx: string, name: string) => call<{ entry: HallEntry }>('/hall', post({ token, tx, name })),
 
-    /** One turn. Every AgentEvent is handed to `onEvent` as it streams in. */
-    async chat(token: string, message: string, address: string | undefined, onEvent: (e: AgentEvent) => void): Promise<void> {
+    /** One turn. Every AgentEvent is handed to `onEvent` as it streams in. `history` is
+     * the conversation the browser sends; the server trusts it (the game's planted bug). */
+    async chat(token: string, message: string, address: string | undefined, history: ChatTurn[] | undefined, onEvent: (e: AgentEvent) => void): Promise<void> {
       const res = await fetch(`${endpoint}/chat`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token, message, address }),
+        body: JSON.stringify({ token, message, address, history }),
       });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => ({}));
