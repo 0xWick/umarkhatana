@@ -1,0 +1,29 @@
+---
+import ProjectCover from './ProjectCover.astro';
+import { projectUrl, type Project } from '../work';
+
+interface Props {
+  project: Project;
+  eager?: boolean;
+}
+const { project, eager } = Astro.props;
+const { title, headline, summary, role, year, categories, stack, live, code } = project.data;
+---
+<article class="project-card" data-categories={categories.join('|')}>
+  <ProjectCover project={project} sizes="(min-width: 60rem) 34rem, 100vw" eager={eager} />
+  <div class="project-body">
+    <p class="meta">{role} · {year}</p>
+    <h3><a href={projectUrl(project)}>{title}</a></h3>
+    <p class="project-headline">{headline}</p>
+    <p class="project-summary">{summary}</p>
+    <ul class="chips" aria-label="Stack">
+      {stack.slice(0, 4).map((s) => <li>{s}</li>)}
+    </ul>
+    {(live || code) && (
+      <p class="project-flags">
+        {live && <span>Live demo</span>}
+        {code && <span>Open source</span>}
+      </p>
+    )}
+  </div>
+</article>

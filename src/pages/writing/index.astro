@@ -5,7 +5,7 @@ import { posts } from '../../posts';
 
 const items = await posts();
 ---
-<Base title="Writing" description="Technical posts on smart contracts, cross-chain systems and AI agents.">
+<Base title="Writing" description="Technical posts on smart contracts, cross-chain systems and AI agents." noindex={items.length === 0}>
   <h1>Writing</h1>
   <p class="lede">Technical notes on the things I build.</p>
   {items.length > 0 ? <PostList items={items} /> : <p>The first post is on its way.</p>}

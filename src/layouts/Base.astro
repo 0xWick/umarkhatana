@@ -8,8 +8,14 @@ interface Props {
   description: string;
   type?: 'website' | 'article';
   jsonld?: object;
+  /** Absolute URL of this page's share image; the site default otherwise. */
+  image?: string;
+  imageAlt?: string;
+  noindex?: boolean;
 }
-const { title, description, type = 'website', jsonld } = Astro.props;
+const { title, description, type = 'website', jsonld, image, imageAlt, noindex = false } = Astro.props;
+const ogImage = image ?? new URL('/og.jpg', Astro.site).href;
+const ogAlt = image ? (imageAlt ?? title) : 'A hooded hacker above the word HACKERMAN';
 // build.format 'file' makes the build-time path end in .html; the served URL doesn't.
 const path = Astro.url.pathname.replace(/(index)?\.html$/, '');
 const canonical = new URL(path, Astro.site).href;
@@ -33,6 +39,8 @@ const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
+  <meta name="author" content={SITE.name} />
+  {noindex && <meta name="robots" content="noindex, follow" />}
   <link rel="canonical" href={canonical} />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
@@ -42,12 +50,13 @@ const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonical} />
   <meta property="og:site_name" content={SITE.name} />
-  <meta property="og:image" content={new URL('/og.jpg', Astro.site).href} />
-  <meta property="og:image:alt" content="A hooded hacker above the word HACKERMAN" />
-  <meta name="twitter:card" content="summary" />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:alt" content={ogAlt} />
+  <meta name="twitter:card" content={image ? 'summary_large_image' : 'summary'} />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={new URL('/og.jpg', Astro.site).href} />
+  <meta name="twitter:image" content={ogImage} />
+  <meta name="twitter:image:alt" content={ogAlt} />
   {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld)} />}
 </head>
 <body>

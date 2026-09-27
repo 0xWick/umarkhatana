@@ -1,0 +1,48 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import { SITE } from '../../data';
+import { projects, projectUrl } from '../../work';
+
+const all = await projects();
+const filters = ['All', 'AI', 'Blockchain', 'Full-stack'];
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: `Work by ${SITE.name}`,
+  url: `${SITE.url}/work`,
+  author: { '@id': `${SITE.url}/#person` },
+  mainEntity: {
+    '@type': 'ItemList',
+    itemListElement: all.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE.url}${projectUrl(p)}`, name: p.data.title })),
+  },
+};
+---
+<Base title="Work" description={`Projects by ${SITE.name}: AI agents that transact on-chain, smart contracts, and full-stack apps, each with how it works, screenshots and code.`} jsonld={jsonld}>
+  <div class="wide">
+    <h1>Work</h1>
+    <p class="lede">AI agents that move money, the smart contracts that keep them honest, and full-stack apps. Open any project for how it works, screenshots and code.</p>
+    <div class="filters" role="group" aria-label="Filter projects" data-filters hidden>
+      {filters.map((f, i) => <button type="button" data-filter={f} aria-pressed={i === 0 ? 'true' : 'false'}>{f}</button>)}
+    </div>
+    <div class="project-grid">
+      {all.map((p, i) => <ProjectCard project={p} eager={i < 2} />)}
+    </div>
+  </div>
+</Base>
+
+<script>
+  // Filters are an enhancement: without JS, every project shows.
+  const bar = document.querySelector<HTMLElement>('[data-filters]');
+  const cards = [...document.querySelectorAll<HTMLElement>('.project-card')];
+  if (bar) {
+    bar.hidden = false;
+    bar.addEventListener('click', (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-filter]');
+      if (!button) return;
+      const f = button.dataset.filter!;
+      bar.querySelectorAll('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+      for (const card of cards) card.hidden = f !== 'All' && !card.dataset.categories!.split('|').includes(f);
+    });
+  }
+</script>

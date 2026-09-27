@@ -1,0 +1,110 @@
+---
+import { getImage, Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProjectCover from '../../components/ProjectCover.astro';
+import { SITE } from '../../data';
+import { projects, projectUrl, type Project } from '../../work';
+
+export async function getStaticPaths() {
+  const all = await projects();
+  return all.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, prev: all[i - 1], next: all[i + 1] },
+  }));
+}
+
+interface Props {
+  project: Project;
+  prev?: Project;
+  next?: Project;
+}
+const { project, prev, next } = Astro.props;
+const d = project.data;
+const { Content } = await render(project);
+const url = `${SITE.url}${projectUrl(project)}`;
+const og = d.cover ? await getImage({ src: d.cover, width: 1200, format: 'jpeg' }) : null;
+const ogImage = og ? new URL(og.src, Astro.site).href : undefined;
+const liveUrl = d.live && new URL(d.live.url, SITE.url).href;
+
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': d.live ? 'WebApplication' : 'CreativeWork',
+      '@id': `${url}#project`,
+      name: d.title,
+      headline: `${d.title}: ${d.headline}`,
+      description: d.summary,
+      url,
+      ...(ogImage && { image: ogImage }),
+      ...(liveUrl && { sameAs: liveUrl }),
+      ...(d.live && { applicationCategory: 'DeveloperApplication', operatingSystem: 'Web' }),
+      author: { '@id': `${SITE.url}/#person` },
+      creator: { '@id': `${SITE.url}/#person` },
+      dateCreated: d.year.slice(0, 4),
+      keywords: d.stack.join(', '),
+      ...(d.code && {
+        workExample: { '@type': 'SoftwareSourceCode', codeRepository: d.code, programmingLanguage: d.stack.slice(0, 3) },
+      }),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE.url },
+        { '@type': 'ListItem', position: 2, name: 'Work', item: `${SITE.url}/work` },
+        { '@type': 'ListItem', position: 3, name: d.title, item: url },
+      ],
+    },
+  ],
+};
+---
+<Base title={`${d.title}: ${d.headline}`} description={d.summary} image={ogImage} imageAlt={d.coverAlt} jsonld={jsonld}>
+  <article class="project-page">
+    <nav class="breadcrumbs meta" aria-label="Breadcrumb"><a href="/work">Work</a> / {d.title}</nav>
+    <header class="project-header">
+      <h1>{d.title}</h1>
+      <p class="lede">{d.headline}</p>
+      <p class="meta">{d.role} · {d.year} · {d.categories.join(', ')}</p>
+      <p class="actions">
+        {d.live && <a class="button primary" href={d.live.url}>{d.live.label} →</a>}
+        {d.code && <a class="button" href={d.code}>Code on GitHub</a>}
+        {d.extra && <a class="button" href={d.extra.url}>{d.extra.label}</a>}
+      </p>
+    </header>
+
+    <div class="wide project-cover">
+      <ProjectCover project={project} sizes="(min-width: 76rem) 72rem, 100vw" eager />
+    </div>
+
+    <section class="facts" aria-label="At a glance">
+      <div><h2>The problem</h2><p>{d.problem}</p></div>
+      <div><h2>Outcome</h2><p>{d.outcome}</p></div>
+      <div><h2>Stack</h2><ul class="chips">{d.stack.map((s) => <li>{s}</li>)}</ul></div>
+    </section>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {d.gallery.length > 0 && (
+      <section class="wide gallery" aria-label="Screenshots">
+        {d.gallery.map((g) => (
+          <figure>
+            <Image src={g.src} alt={g.alt} widths={[480, 800, 1200, 1600]} sizes="(min-width: 60rem) 36rem, 100vw" />
+            {g.caption && <figcaption>{g.caption}</figcaption>}
+          </figure>
+        ))}
+      </section>
+    )}
+
+    <aside class="project-cta">
+      <p>Building something like this? <a href={SITE.calendly}>Book a 30-minute call</a> or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+    </aside>
+
+    <nav class="prevnext" aria-label="More projects">
+      {prev ? <a href={projectUrl(prev)} rel="prev"><span class="meta">Previous</span>{prev.data.title}</a> : <span />}
+      {next ? <a href={projectUrl(next)} rel="next"><span class="meta">Next</span>{next.data.title}</a> : <a href="/work"><span class="meta">Back to</span>All work</a>}
+    </nav>
+  </article>
+</Base>

@@ -1,0 +1,30 @@
+---
+import { Image } from 'astro:assets';
+import type { Project } from '../work';
+
+interface Props {
+  project: Project;
+  sizes: string;
+  eager?: boolean;
+}
+const { project, sizes, eager = false } = Astro.props;
+const { cover, coverAlt, coverFit, title, headline, categories } = project.data;
+---
+{cover ? (
+  <Image
+    class:list={['cover', { contain: coverFit === 'contain' }]}
+    src={cover}
+    alt={coverAlt ?? title}
+    widths={[480, 800, 1200, 1600]}
+    sizes={sizes}
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : 'auto'}
+  />
+) : (
+  // Client work has no screenshots to show: a typographic cover instead.
+  <div class="cover cover-type" role="img" aria-label={`${title}: ${headline}`}>
+    <span class="cover-kicker">{categories.join(' · ')}</span>
+    <span class="cover-title">{title}</span>
+    <span class="cover-sub">{headline}</span>
+  </div>
+)}
