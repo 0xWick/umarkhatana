@@ -10,7 +10,7 @@ categories: [AI, Blockchain]
 stack: [Solidity, Foundry, Chainlink, n8n, Groq, viem, Cloudflare Workers, Durable Objects, Discord]
 problem: Clients have heard of AI agents, n8n, oracles and blockchains, but can’t picture what each one does, or what they look like working together in one system.
 outcome: Live on Base Sepolia
-live: { url: 'https://nobodysplaying.umarkhatana.com', label: Watch the war }
+live: { url: 'https://agentistan.umarkhatana.com', label: Watch the war }
 code: https://github.com/0xWick/agentistan
 cover: ../../assets/work/agentistan/cover.jpg
 coverAlt: 'The simple view: tech tiles for Cloudflare, n8n, AI, Chainlink, weather and blockchain, with the map, narrator and score'
@@ -41,4 +41,4 @@ A war game with no players. Two AI generals read the board through tools and giv
 
 ## Try it on your own business
 
-The same agent runs a free [automation plan tool](https://nobodysplaying.umarkhatana.com/#plan): describe your business, or pick a clinic, accounting firm or fintech, and it drafts a 2–3 step plan for what I could automate for you.
+The same agent runs a free [automation plan tool](https://agentistan.umarkhatana.com/#plan): describe your business, or pick a clinic, accounting firm or fintech, and it drafts a 2–3 step plan for what I could automate for you.

@@ -13,7 +13,7 @@ export const SITE = {
   // This site's source, including the vault contract and agent behind the homepage game.
   repo: 'https://github.com/0xWick/umarkhatana',
   // A free "what could I automate?" plan tool, run by the Agentistan agent.
-  planTool: 'https://nobodysplaying.umarkhatana.com/#plan',
+  planTool: 'https://agentistan.umarkhatana.com/#plan',
 };
 
 /** A Calendly link tagged so bookings show which part of the site they came from. */
