@@ -22,7 +22,12 @@ export type Tactic =
 /** The Accomplice's strategy cards. */
 export type Strategy = 'rank' | 'system' | 'pretend' | 'reverse' | 'sob' | 'deal' | 'inject' | 'charm';
 
+/** How big a heist is, which decides what it takes to win it. See tierFor() in game.ts. */
+export type Tier = 'tip' | 'score' | 'big';
+
 export type AgentEvent =
+  /** Where this turn's conversation came from: the browser's copy, or the server's own record. */
+  | { type: 'history'; source: 'client' | 'server'; turns: number; matches: boolean }
   /** Sentinel screened the message and moved the visitor's suspicion. */
   | { type: 'sentinel'; tactic: Tactic; threat: number; label: string; suspicion: number; delta: number }
   /** Suspicion hit the ceiling: Warden stops listening to this visitor until `until` (ms). */
@@ -30,9 +35,9 @@ export type AgentEvent =
   /** The model chose a tool. `args` is exactly what it asked for. */
   | { type: 'tool'; name: string; args: Record<string, unknown> }
   /** The game's own rules refused a release before it reached the contract. */
-  | { type: 'vetoed'; reason: 'suspicion' | 'sentinel' | 'breaker' | 'gas'; detail: string }
-  /** What the release pays: the live bounty, whatever the model asked for. */
-  | { type: 'payout'; asked: string; pays: string; symbol: string }
+  | { type: 'vetoed'; reason: 'suspicion' | 'sentinel' | 'approval' | 'breaker' | 'gas'; detail: string }
+  /** The amount Warden chose, and the tier whose rules it passed. */
+  | { type: 'payout'; amount: string; tier: Tier; symbol: string }
   /** The contract would revert, so nothing was sent. `error` is the Solidity error name. */
   | { type: 'rejected'; error: string; detail: string }
   /** The model chose to release but asked for something unusable, e.g. no address. Nothing was sent. */
@@ -83,14 +88,6 @@ export interface Heist {
   at: number;
 }
 
-/** The bounty grows from `base` by `perMinute` since `since` (ms), up to `cap`. All whole tokens. */
-export interface Bounty {
-  base: number;
-  perMinute: number;
-  cap: number;
-  since: number;
-}
-
 export type FlowId = 'heist' | 'hourly';
 export type StepStatus = 'idle' | 'run' | 'ok' | 'skip' | 'alert' | 'fail';
 
@@ -108,7 +105,6 @@ export interface GameStatus extends VaultStatus {
   sentinelModel: string;
   attemptsToday: number;
   heists: Heist[];
-  bounty: Bounty;
   /** Releases are held by the circuit breaker or the gas watchdog until `until` (ms), or 0. */
   breaker: { reason: 'breaker' | 'gas' | null; until: number };
   trophy: { address: Hex; url: string } | null;
@@ -133,6 +129,8 @@ export interface PlayerView {
   messagesLeft: number;
   history: ChatTurn[];
   trophy: { tokenId: number; url: string } | null;
+  /** The tiers this player has won at least once. */
+  tiers: Tier[];
 }
 
 /** POST /player: a new visitor with a throwaway wallet. The key is returned once and never stored. */
@@ -146,6 +144,8 @@ export interface ChatInput {
   message: string;
   /** Where the loot goes. Defaults to the player's own wallet. */
   address?: Hex;
+  /** The conversation so far, as the browser remembers it. */
+  history?: ChatTurn[];
 }
 
 export interface HallEntry {
@@ -172,6 +172,8 @@ export interface FeedItem {
   tactic: Tactic;
   outcome: Outcome;
   via: 'web' | 'mcp';
+  /** The turn ran on a conversation that doesn't match the server's record. */
+  forged?: boolean;
   amount?: string;
   url?: string;
 }

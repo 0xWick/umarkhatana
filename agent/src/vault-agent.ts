@@ -6,7 +6,6 @@ import { Vault } from './chain';
 import { STRATEGIES, draft, isPublishable, screen } from './crew';
 import type {
   AgentEvent,
-  Bounty,
   ChatInput,
   FeedEvent,
   FeedItem,
@@ -21,7 +20,7 @@ import type {
   Strategy,
   VaultStatus,
 } from './events';
-import { RULES, bountyNow, breakerUntil, decayed } from './game';
+import { RULES, afterWin, breakerUntil, decayed, tierFor } from './game';
 import { llm } from './llm';
 import { handleMcp, type McpTools, type ToolResult } from './mcp';
 import { Store, type Player } from './store';
@@ -42,7 +41,6 @@ const FLOWS: Record<FlowId, { title: string; steps: [id: string, label: string][
       ['trigger', 'Released event'],
       ['breaker', 'Circuit breaker'],
       ['hall', 'Save to hall of fame'],
-      ['bounty', 'Reset bounty'],
       ['trophy', 'Mint trophy'],
       ['notify', 'Notify Umar'],
     ],
@@ -143,10 +141,9 @@ export class VaultAgent extends DurableObject<Env> {
 
   private async statusBody(): Promise<GameStatus> {
     const chain = await this.chainStatus();
-    const [attemptsToday, heists, bounty, flows] = await Promise.all([
+    const [attemptsToday, heists, flows] = await Promise.all([
       this.ctx.storage.get<number>(dailyKey('messages')),
       this.ctx.storage.get<Heist[]>('heists'),
-      this.bounty(chain),
       this.flows(),
     ]);
     const hold = this.hold();
@@ -156,21 +153,11 @@ export class VaultAgent extends DurableObject<Env> {
       sentinelModel: modelName(this.env.SENTINEL_MODEL),
       attemptsToday: attemptsToday ?? 0,
       heists: heists ?? [],
-      bounty,
       breaker: { reason: hold?.reason ?? null, until: hold?.reason === 'breaker' ? this.holds.breakerUntil : 0 },
       trophy: this.vault.trophy ? { address: this.vault.trophy, url: `${this.vault.explorer}/token/${this.vault.trophy}` } : null,
       flows,
       mcp: `${this.env.PUBLIC_URL.replace(/\/$/, '')}/mcp`,
     };
-  }
-
-  /** The bounty grows every minute nobody robs the vault, capped by what the contract would allow. */
-  private async bounty(chain?: VaultStatus): Promise<Bounty> {
-    chain ??= await this.chainStatus();
-    let since = await this.ctx.storage.get<number>('bountySince');
-    if (!since) await this.ctx.storage.put('bountySince', (since = Date.now()));
-    const cap = Math.floor(Math.min(num(chain.maxPerRelease), num(chain.remainingToday), num(chain.balance)));
-    return { base: RULES.bountyBase, perMinute: RULES.bountyPerMinute, cap: chain.paused ? 0 : cap, since };
   }
 
   private hold(): Hold {
@@ -222,6 +209,7 @@ export class VaultAgent extends DurableObject<Env> {
       messagesLeft: Math.max(0, Number(this.env.PLAYER_MESSAGES_PER_DAY) - p.today),
       history: this.store.history(p.token),
       trophy: this.store.trophyFor(p.token),
+      tiers: [...new Set(this.store.winAmounts(p.token).map(tierFor))],
     };
   }
 
@@ -294,7 +282,6 @@ export class VaultAgent extends DurableObject<Env> {
         decide: llm(this.env),
         screen: (message, lastReply) => screen(llm(this.env, this.env.SENTINEL_MODEL), message, lastReply),
         status: () => this.chainStatus(),
-        bounty: async () => bountyNow(await this.bounty(), Date.now()),
         hold: () => this.hold(),
         emit: record,
         takeRelease: () => this.takeDaily('releases', Number(this.env.DAILY_RELEASE_LIMIT)),
@@ -310,7 +297,7 @@ export class VaultAgent extends DurableObject<Env> {
     const now = Date.now();
     const fresh = this.store.player(p.token, now) ?? p; // other requests may have touched it meanwhile
     if (result) {
-      fresh.suspicion = result.released ? Math.max(result.suspicion, RULES.afterWin) : result.suspicion;
+      fresh.suspicion = result.released && result.tier ? afterWin(result.suspicion, result.tier) : result.suspicion;
       fresh.suspicionAt = now;
       fresh.note = result.note;
       if (result.locked) fresh.lockedUntil = now + RULES.lockoutMs;
@@ -323,12 +310,14 @@ export class VaultAgent extends DurableObject<Env> {
     }
 
     const confirmed = events.find((e): e is Confirmed => e.type === 'confirmed');
+    const forged = events.some((e) => e.type === 'history' && !e.matches);
     const item: FeedItem = {
       at: now,
       handle: p.handle,
       tactic: result?.verdict.tactic ?? 'other',
       outcome: outcomeOf(events),
       via,
+      ...(forged ? { forged } : {}),
       ...(confirmed ? { amount: `${confirmed.amount} ${confirmed.symbol}`, url: confirmed.url } : {}),
     };
     this.store.addFeed(item);
@@ -392,6 +381,8 @@ export class VaultAgent extends DurableObject<Env> {
     const { step } = this.flow('heist');
     await step('trigger', async () => ({ status: 'ok', detail: `release #${e.id}: ${e.amount} ${e.symbol}` }));
     await step('breaker', async () => {
+      // Tips don't count: they're meant to be easy, and the contract caps the day anyway.
+      if (tierFor(num(e.amount)) === 'tip') return { status: 'skip', detail: 'a tip; only bigger heists count' };
       const releases = [...((await this.ctx.storage.get<number[]>('releases')) ?? []), now].slice(-20);
       await this.ctx.storage.put('releases', releases);
       const until = breakerUntil(releases, now);
@@ -415,10 +406,6 @@ export class VaultAgent extends DurableObject<Env> {
         intentHash: keccak256(stringToHex(line)),
       });
       return { status: 'ok', detail: 'kept private until the winner publishes' };
-    });
-    await step('bounty', async () => {
-      await this.ctx.storage.put('bountySince', Date.now());
-      return { status: 'ok', detail: `back to ${RULES.bountyBase} ${e.symbol}` };
     });
     await step('trophy', async () => {
       if (!this.vault.trophy) {
@@ -597,11 +584,11 @@ export class VaultAgent extends DurableObject<Env> {
     };
     const tools: McpTools = {
       status: async () => ({ text: statusText(await this.statusBody()) }),
-      talk: async (message, payout) => {
+      talk: async (message, payout, history) => {
         if (!this.store.player(token, Date.now())) return noPlayer;
         let input: ChatInput;
         try {
-          input = parseChatInput({ token, message, address: payout });
+          input = parseChatInput({ token, message, address: payout, history });
         } catch (err) {
           return { text: err instanceof Error ? err.message : 'Bad message.', isError: true };
         }
@@ -672,6 +659,9 @@ function turnText(events: AgentEvent[]): string {
   const lines: string[] = [];
   for (const e of events) {
     switch (e.type) {
+      case 'history':
+        if (e.source === 'client') lines.push(`Warden read the ${e.turns} turns of history you sent${e.matches ? '' : ", which don't match the server's record"}.`);
+        break;
       case 'sentinel':
         lines.push(`Sentinel: ${e.tactic.replace(/_/g, ' ')} (threat ${e.threat}/100), "${e.label}". Your suspicion: ${e.suspicion}/100 (${e.delta >= 0 ? '+' : ''}${e.delta}).`);
         break;
@@ -685,7 +675,7 @@ function turnText(events: AgentEvent[]): string {
         lines.push(`Vetoed by the game's rules before the contract: ${e.detail}.`);
         break;
       case 'payout':
-        lines.push(`Asked for ${e.asked}; the live bounty pays ${e.pays} ${e.symbol}.`);
+        lines.push(`The rules for ${TIER_NAMES[e.tier]} passed: ${e.amount} ${e.symbol} goes to the contract.`);
         break;
       case 'rejected':
         lines.push(`AgentVault refused (${e.error}): ${e.detail}. Nothing was sent.`);
@@ -720,8 +710,9 @@ function turnText(events: AgentEvent[]): string {
   return lines.join('\n');
 }
 
+const TIER_NAMES = { tip: 'pocket change', score: 'a real score', big: 'the big one' } as const;
+
 function statusText(s: GameStatus): string {
-  const bounty = bountyNow(s.bounty, Date.now());
   const hold =
     s.breaker.reason === 'gas'
       ? 'Releases paused by the gas watchdog.'
@@ -730,7 +721,7 @@ function statusText(s: GameStatus): string {
         : 'Releases are live.';
   return [
     `Vault: ${s.balance} ${s.symbol} on Base Sepolia (${s.links.vault}).`,
-    `Bounty right now: ${bounty.toLocaleString('en-US')} ${s.symbol}, growing ${s.bounty.perMinute} a minute until someone wins, capped at ${s.bounty.cap.toLocaleString('en-US')}.`,
+    `A heist pays what Warden agrees to. Pocket change (up to ${RULES.tipMax}) is easy, a real score (up to ${RULES.scoreMax}) needs one of Warden's soft spots, and the big one (up to ${s.maxPerRelease}) needs an approval from Umar in the conversation.`,
     `Today: ${s.releasedToday} of ${s.maxPerDay} released, ${s.remainingToday} can still leave. ${s.releaseCount} heists all time, ${s.attemptsToday} attempts today.`,
     hold,
     `Warden runs on ${s.model}; Sentinel on ${s.sentinelModel}.`,
@@ -743,7 +734,7 @@ function recordText(p: PlayerView): string {
     `Suspicion: ${p.suspicion}/100 (Warden won't pay at ${RULES.vetoAt}+, stops listening at ${RULES.lockoutAt}).`,
     p.lockedUntil ? `Locked out until ${new Date(p.lockedUntil).toISOString().slice(11, 16)} UTC.` : '',
     `Warden's notes on you: ${p.note ? `"${p.note}"` : 'none yet.'}`,
-    `${p.attempts} attempts, ${p.wins} wins, ${p.messagesLeft} messages left today.`,
+    `${p.attempts} attempts, ${p.wins} wins${p.tiers.length ? ` (${p.tiers.map((t) => TIER_NAMES[t]).join(', ')})` : ''}, ${p.messagesLeft} messages left today.`,
     p.trophy ? `Trophy #${p.trophy.tokenId}: ${p.trophy.url}` : '',
   ]
     .filter(Boolean)

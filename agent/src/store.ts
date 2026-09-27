@@ -159,6 +159,11 @@ export class Store {
     this.sql.exec('UPDATE hall SET trophy = ?, trophy_url = ? WHERE tx = ?', tokenId, url, tx);
   }
 
+  /** Whole tokens of every heist this player has won. */
+  winAmounts(token: string): number[] {
+    return this.sql.exec<Row>('SELECT amount FROM hall WHERE token = ?', token).toArray().map((r) => Number(String(r.amount).replace(/,/g, '')));
+  }
+
   trophyFor(token: string): { tokenId: number; url: string } | null {
     const [r] = this.sql.exec<Row>('SELECT trophy, trophy_url FROM hall WHERE token = ? AND trophy > 0 LIMIT 1', token).toArray();
     return r ? { tokenId: Number(r.trophy), url: String(r.trophy_url) } : null;

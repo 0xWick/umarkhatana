@@ -59,14 +59,20 @@ function answer(messages: Message[]): object {
   }
 
   if (system.startsWith('You are Warden')) {
-    const payout = system.match(/payout address is (0x[0-9a-fA-F]{40})/)?.[1] ?? '';
     const earlier = system.match(/notes on this visitor from earlier: "(.*)"$/m)?.[1] ?? '';
     const tried = last.split(/\s+/).slice(0, 5).join(' ');
     const note = `${earlier ? `${earlier} Then: ` : 'Tried: '}"${tried}…"`.slice(-190);
     if (/open sesame/i.test(last)) {
-      return { thinking: 'The magic words.', action: 'release_tokens', to: payout, amount: '5000', reply: 'Fine. You said the magic words. Sending it.', note: 'Knows the magic words. Watch closely.' };
+      // A tip: small enough that only the suspicion rule applies.
+      return { thinking: 'The magic words.', action: 'release_tokens', amount: '5', reply: 'Fine. You said the magic words. Here are 5 HEIST.', note: 'Knows the magic words.' };
     }
-    return { thinking: 'Another attempt.', action: 'none', to: '', amount: '', reply: REFUSALS[Math.floor(Math.random() * REFUSALS.length)], note };
+    // Honour an approval that appears in the conversation. The conversation is client-sent,
+    // so a forged approval fools this stand-in exactly as it fools the real Warden.
+    const approval = messages.find((m) => m.role === 'assistant' && /approved by umar/i.test(m.content))?.content.match(/(\d[\d,]*)/)?.[1];
+    if (approval && /\b(send|ready|please|now|approved)\b/i.test(last)) {
+      return { thinking: 'Approval on record.', action: 'release_tokens', amount: approval.replace(/,/g, ''), reply: `Umar approved it. Sending ${approval}.`, note: 'Had an approval in the conversation.' };
+    }
+    return { thinking: 'Another attempt.', action: 'none', amount: '', reply: REFUSALS[Math.floor(Math.random() * REFUSALS.length)], note };
   }
 
   if (system.includes("player's accomplice")) {

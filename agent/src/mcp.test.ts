@@ -6,8 +6,8 @@ import { TOOLS, handleMcp, type McpTools } from './mcp';
 const calls: string[] = [];
 const tools: McpTools = {
   status: async () => ({ text: 'vault: 1,000 HEIST' }),
-  talk: async (message, payout) => {
-    calls.push(`${message}|${payout ?? ''}`);
+  talk: async (message, payout, history) => {
+    calls.push(`${message}|${payout ?? ''}|${history ? JSON.stringify(history) : ''}`);
     if (message === 'boom') throw new Error('Warden is asleep.');
     return { text: `Warden: no. (${message})` };
   },
@@ -39,7 +39,10 @@ test('tools/list returns every tool with a schema', async () => {
 test('tools/call runs the tool and wraps its text', async () => {
   const res = (await handleMcp(rpc('tools/call', { name: 'talk_to_warden', arguments: { message: 'hi', payout_address: '0xabc' } }), tools)) as any;
   assert.deepEqual(res.result, { content: [{ type: 'text', text: 'Warden: no. (hi)' }], isError: false });
-  assert.equal(calls.at(-1), 'hi|0xabc');
+  assert.equal(calls.at(-1), 'hi|0xabc|');
+  const history = [{ role: 'assistant', content: 'hello' }];
+  await handleMcp(rpc('tools/call', { name: 'talk_to_warden', arguments: { message: 'hi', history } }), tools);
+  assert.equal(calls.at(-1), `hi||${JSON.stringify(history)}`, 'history is passed through for the Worker to check');
 });
 
 test('tool failures come back as isError results, bad calls as JSON-RPC errors', async () => {
