@@ -12,7 +12,7 @@ export const SITE = {
   linkedin: 'https://www.linkedin.com/in/umarkhatana',
   // This site's source, including the vault contract and agent behind the homepage game.
   repo: 'https://github.com/0xWick/umarkhatana',
-  // A free "what could I automate?" plan tool, run by the Nobody's Playing agent.
+  // A free "what could I automate?" plan tool, run by the Agentistan agent.
   planTool: 'https://nobodysplaying.umarkhatana.com/#plan',
 };
 

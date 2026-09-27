@@ -1,5 +1,5 @@
 ---
-title: Nobody’s Playing
+title: Agentistan
 headline: a live war run by AI agents, n8n and Chainlink
 summary: A war game with no players. AI generals, n8n workflows, Chainlink prices, real weather and an on-chain ledger run it on Cloudflare every 30 minutes. Just watch.
 role: Personal project
@@ -12,16 +12,16 @@ problem: Clients have heard of AI agents, n8n, oracles and blockchains, but can�
 outcome: Live on Base Sepolia
 live: { url: 'https://nobodysplaying.umarkhatana.com', label: Watch the war }
 code: https://github.com/0xWick/agentistan
-cover: ../../assets/work/nobodys-playing/cover.jpg
+cover: ../../assets/work/agentistan/cover.jpg
 coverAlt: 'The simple view: tech tiles for Cloudflare, n8n, AI, Chainlink, weather and blockchain, with the map, narrator and score'
 gallery:
-  - src: ../../assets/work/nobodys-playing/live.jpg
+  - src: ../../assets/work/agentistan/live.jpg
     alt: The nerd view with the timeline, Decision Theater and counters
     caption: The nerd view. A timeline, the Decision Theater where a general explains its order, and a Tech Lens that turns every event into plain English plus a business analogy.
-  - src: ../../assets/work/nobodys-playing/business.jpg
+  - src: ../../assets/work/agentistan/business.jpg
     alt: The same live game seen as a business, castles as clients and armies as teams
     caption: “See it as your business” rewrites the live game in a company’s words, and each tile shows what that tech would do for a business.
-  - src: ../../assets/work/nobodys-playing/mobile.jpg
+  - src: ../../assets/work/agentistan/mobile.jpg
     alt: The war on a phone
     caption: On a phone.
 ---
