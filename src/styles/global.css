@@ -95,6 +95,7 @@ a { color: var(--accent); text-underline-offset: 0.15em; text-decoration-thickne
 a:hover { text-decoration-thickness: 2px; }
 
 .lede { font-size: 1.2em; line-height: 1.5; color: var(--muted); margin-bottom: 2rem; }
+.callout { padding: 0.875rem 1.125rem; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--rule)); border-left-width: 3px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 6%, var(--bg)); }
 
 .meta {
   font-family: var(--sans);

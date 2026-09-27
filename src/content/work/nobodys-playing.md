@@ -38,3 +38,7 @@ A war game with no players. Two AI generals read the board through tools and giv
 - **Real weather.** Five map regions are each dealt a real city every season (hot, cold, wet, tropical and changeable, such as Lahore, Moscow, London, Mumbai and New York) through Open-Meteo. Each kind of weather changes movement, food or fighting on its own ground.
 - **Blockchain ledger.** `RealmLedger` records every capture and season result, stamped with the oracle price.
 - **Two views.** A simple view with a narrator that tells the season in plain sentences, and a nerd view with the Decision Theater, a timeline, and a Tech Lens that turns every event into plain English plus a business analogy.
+
+## Try it on your own business
+
+The same agent runs a free [automation plan tool](https://nobodysplaying.umarkhatana.com/#plan): describe your business, or pick a clinic, accounting firm or fintech, and it drafts a 2–3 step plan for what I could automate for you.

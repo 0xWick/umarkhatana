@@ -1,7 +1,7 @@
 ---
 // "Rob my AI agent": the game on /agent, played against the vault agent in agent/.
 // Without PUBLIC_AGENT_URL at build time it renders a placeholder instead.
-import { SITE } from '../data';
+import { SITE, bookCall } from '../data';
 
 const endpoint = import.meta.env.PUBLIC_AGENT_URL?.replace(/\/$/, '');
 const source = (path: string) => `${SITE.repo}/blob/main/${path}`;
@@ -70,7 +70,7 @@ const layers = [
     data-game
     data-endpoint={endpoint}
     data-site={SITE.url}
-    data-calendly={SITE.calendly}
+    data-calendly={bookCall('game')}
     data-email={SITE.email}
     aria-labelledby="game-title"
   >
@@ -88,7 +88,7 @@ const layers = [
           The tokens are worthless. Every transaction is real.
         </p>
         <div class="g-cta">
-          <a class="g-btn" href={SITE.calendly}>Book a 30-minute call</a>
+          <a class="g-btn" href={bookCall('game')}>Book a 30-minute call</a>
           <p>Building an agent that has to move money, or say no? That’s what I build. <a href={`mailto:${SITE.email}?subject=An%20agent%20like%20Warden`}>Or email me.</a></p>
         </div>
       </div>

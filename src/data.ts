@@ -12,7 +12,12 @@ export const SITE = {
   linkedin: 'https://www.linkedin.com/in/umarkhatana',
   // This site's source, including the vault contract and agent behind the homepage game.
   repo: 'https://github.com/0xWick/umarkhatana',
+  // A free "what could I automate?" plan tool, run by the Nobody's Playing agent.
+  planTool: 'https://nobodysplaying.umarkhatana.com/#plan',
 };
+
+/** A Calendly link tagged so bookings show which part of the site they came from. */
+export const bookCall = (medium: string) => `${SITE.calendly}?utm_source=umarkhatana.com&utm_medium=${medium}`;
 
 // Home intro: 2–3 sentences.
 export const intro = [
@@ -54,6 +59,23 @@ export const services = [
       'Profiling and benchmarking for latency, throughput and cost',
       'n8n workflows and API, webhook and OAuth integrations',
     ],
+  },
+];
+
+// Plain-English, for business owners rather than engineers. Kept word-for-word in sync
+// with the "free automation plan" tool so a prospect never sees two versions.
+export const plainServices = [
+  {
+    heading: 'For clinics, dental practices and labs',
+    body: 'Automate the busywork around patients: appointment reminders and no-show follow-ups, intake and insurance forms that fill themselves, results and referrals routed to the right place, and the reports you need pulled together on their own — so your staff spend their time on patients, not paperwork.',
+  },
+  {
+    heading: 'For accounting firms, advisors and fintechs',
+    body: 'Take the manual work out of the numbers: invoices and statements reconciled automatically, documents chased and filed, client onboarding and KYC handled step by step, and dashboards that update themselves — accurate, on time, and ready for an audit.',
+  },
+  {
+    heading: 'For any small business, or just for yourself',
+    body: 'One-off automations for the jobs you still do by hand: inbox and calendar triage, quotes and follow-ups, data moved between the tools you already use, and an AI assistant that answers from your own documents. We start with the one task that wastes the most time.',
   },
 ];
 

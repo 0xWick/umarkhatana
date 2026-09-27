@@ -1,11 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
 import Quote from '../components/Quote.astro';
-import { SITE, about, services, roles, quotes, skills, education, certifications, person } from '../data';
+import { SITE, bookCall, about, services, plainServices, roles, quotes, skills, education, certifications, person } from '../data';
 ---
 <Base title="About" description={`${SITE.name}, ${SITE.jobTitle}. Background, experience and how to get in touch.`} jsonld={person}>
   <h1>About</h1>
   {about.map((p) => <p>{p}</p>)}
+
+  <h2>Automation for your business</h2>
+  <p>If you run a business rather than build software, this is what I can take off your plate. <a href={SITE.planTool}>Get a free automation plan</a> for your own case, or <a href={bookCall('about')}>book a call</a>.</p>
+  {plainServices.map((s) => <>
+    <h3>{s.heading}</h3>
+    <p>{s.body}</p>
+  </>)}
 
   <h2>What I build</h2>
   {services.map((s) => <>
@@ -32,7 +39,7 @@ import { SITE, about, services, roles, quotes, skills, education, certifications
 
   <h2>Contact</h2>
   <p>
-    Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, <a href={SITE.calendly}>book a 30-minute call</a>,
+    Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, <a href={bookCall('about')}>book a 30-minute call</a>,
     or find me on <a href={SITE.github}>GitHub</a> and <a href={SITE.linkedin}>LinkedIn</a>.
   </p>
 

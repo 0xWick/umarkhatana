@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import PostList from '../components/PostList.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import Quote from '../components/Quote.astro';
-import { SITE, intro, quotes, person, website } from '../data';
+import { SITE, bookCall, intro, quotes, person, website } from '../data';
 import { projects } from '../work';
 import { posts } from '../posts';
 
@@ -29,5 +29,7 @@ const featured = (await projects()).filter((p) => p.data.featured).slice(0, 3);
 
   <Quote q={quotes.home} />
 
-  <p>Building something? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or <a href={SITE.calendly}>book a 30-minute call</a>.</p>
+  <p class="callout">Run a clinic, practice, firm or small business? <a href={SITE.planTool}>Get a free automation plan for your business</a> — describe what you do and an AI drafts a 2–3 step plan in a minute.</p>
+
+  <p>Building something? Email <a href={`mailto:${SITE.email}`}>{SITE.email}</a> or <a href={bookCall('home')}>book a 30-minute call</a>.</p>
 </Base>

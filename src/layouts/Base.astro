@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE } from '../data';
+import { SITE, bookCall } from '../data';
 import { posts } from '../posts';
 
 interface Props {
@@ -72,7 +72,7 @@ const agentLive = Boolean(import.meta.env.PUBLIC_AGENT_URL);
   </main>
   <footer class="site-footer wrap">
     <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
-    <a href={SITE.calendly}>Book a call</a>
+    <a href={bookCall('footer')}>Book a call</a>
     <a href={SITE.github}>GitHub</a>
     <a href={SITE.linkedin}>LinkedIn</a>
     <a href="/rss.xml">RSS</a>

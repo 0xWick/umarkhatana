@@ -3,7 +3,7 @@ import { getImage, Image } from 'astro:assets';
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import ProjectCover from '../../components/ProjectCover.astro';
-import { SITE } from '../../data';
+import { SITE, bookCall } from '../../data';
 import { projects, projectUrl, type Project } from '../../work';
 
 export async function getStaticPaths() {
@@ -99,7 +99,7 @@ const jsonld = {
     )}
 
     <aside class="project-cta">
-      <p>Building something like this? <a href={SITE.calendly}>Book a 30-minute call</a> or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+      <p>Building something like this? <a href={bookCall('work-page')}>Book a 30-minute call</a> or email <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
     </aside>
 
     <nav class="prevnext" aria-label="More projects">
